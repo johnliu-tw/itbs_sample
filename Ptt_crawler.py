@@ -5,6 +5,10 @@ from bs4 import BeautifulSoup
 import os
 import traceback
 
+from datetime import date
+today = date.today()
+search_date = today.strftime('%-m/%d')
+
 # 開啟瀏覽器
 options = Options()
 service = Service(os.getcwd() + '/chromedriver')
@@ -40,10 +44,19 @@ try:
 
             # 顯示資料
             title = title.strip()
-            print('標題:' + title)
-            print('按讚:' + num)
-            print('作者:' + author)
-            print('日期:' + date)
+            if(title.startswith('[公告]') or title.startswith('(本文已被刪除)')):
+                continue
+
+            if(num.find('爆') != -1):
+                num = '100'
+            if(num.find('X') != -1  or num == ''):
+                num = '0'
+
+            if(date.strip() == search_date):
+              print('標題:' + title)
+              print('按讚:' + num)
+              print('作者:' + author)
+              print('日期:' + date)
 except Exception as e:
     traceback.print_exc()
     driver.close()
