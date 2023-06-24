@@ -7,7 +7,7 @@ import traceback
 
 from datetime import date
 today = date.today()
-search_date = today.strftime('%-m/%d')
+search_date = '{}/{}'.format(today.month, today.day)
 
 # 開啟瀏覽器
 options = Options()
@@ -28,13 +28,20 @@ try:
     index = button['href'][x+1:dot]
 
     # 從最新往回爬，手動設定停止頁數(eg: 6210)
+    early_stop = False
+    article_count = 0
     for i in range(int(index)+1, 6210, -1):
+        if early_stop == True and article_count == 0:
+            print('停在第 ' + str(i + 1) + ' 頁')
+            break
+
         print('第 ' + str(i) + ' 頁')
         driver.get('https://www.ptt.cc/bbs/Stock/index'+str(i)+'.html')
         # 解析畫面
         sourceCode = BeautifulSoup(driver.page_source, 'html.parser')
         metaSection = sourceCode.select('div.r-list-container')[0]
         sections = metaSection.select('div.r-ent')
+        article_count = 0
         for section in sections:
             # 抓取資料
             title = section.select('div.title')[0].text
@@ -53,10 +60,13 @@ try:
                 num = '0'
 
             if(date.strip() == search_date):
+              article_count += 1
               print('標題:' + title)
               print('按讚:' + num)
               print('作者:' + author)
               print('日期:' + date)
+            else:
+              early_stop = True
 except Exception as e:
     traceback.print_exc()
     driver.close()
