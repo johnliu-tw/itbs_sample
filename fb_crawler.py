@@ -58,6 +58,21 @@ try:
         comment_data = [comment['comment_text']] + comment_reaction_data
         empty_columns = generate_empty_list(len(post_data))
         writer.writerow(empty_columns + comment_data)
+
+        for reply in comment['replies']:
+            if reply['comment_reactions'] is not None:
+              reply_reaction_data = [reply.get('comment_reactions').get('like'), 
+                                        reply.get('comment_reactions').get('love'), 
+                                        reply.get('comment_reactions').get('haha'), 
+                                        reply.get('comment_reactions').get('sorry'), 
+                                        reply.get('comment_reactions').get('wow'), 
+                                        reply.get('comment_reactions').get('angry'), 
+                                        reply.get('comment_reactions').get('care')]
+            else:
+              reply_reaction_data = generate_empty_list(7)
+            reply_data = [reply['comment_text']] + reply_reaction_data
+            empty_columns = generate_empty_list(len(post_data) + len(comment_data))
+            writer.writerow(empty_columns + reply_data)
   
   csv_file.close()
 except Exception as e:
