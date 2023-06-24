@@ -1,9 +1,10 @@
 from facebook_scraper import get_posts
 import csv
-from datetime import date
+from datetime import date, datetime
 import traceback
 today = date.today()
 file_date = today.strftime('%Y-%m-%d')
+search_date = datetime.strptime("2023-06-24", "%Y-%m-%d")
 
 reaction_map = {
     'like': '讚',
@@ -26,8 +27,10 @@ writer.writerow(['日期', '內容', '分享數', '反應:讚', '反應:大心',
 
 try:
   for post in get_posts('Gooaye', pages=1, cookies='www.facebook.com_cookies.txt', extra_info=True, options={'comments': True}):
+    if post['time'] < search_date:
+        break
+    
     date_string = post['time'].strftime('%Y-%m-%d %H:%M:%S')
-
     print(date_string)
     print(post['text'])
     if post['reactions'] is not None:
