@@ -14,6 +14,8 @@ reaction_map = {
     'angry': '怒',
     'care': '加油'
 }
+def generate_empty_list(length):
+   return ['' for _ in range(length)]
 
 
 csv_file = open(file_date+'_data.csv', 'a', newline='', encoding='utf_8_sig')
@@ -28,7 +30,17 @@ try:
 
     print(date_string)
     print(post['text'])
-    post_data = [date_string, post['text'], post['shares']]
+    if post['reactions'] is not None:
+        reaction_data = [post['reactions'].get(reaction_map['like']), 
+                        post['reactions'].get(reaction_map['love']), 
+                        post['reactions'].get(reaction_map['haha']), 
+                        post['reactions'].get(reaction_map['sorry']), 
+                        post['reactions'].get(reaction_map['wow']), 
+                        post['reactions'].get(reaction_map['angry']), 
+                        post['reactions'].get(reaction_map['care'])]
+    else:
+        reaction_data = generate_empty_list(7)
+    post_data = [date_string, post['text'], post['shares']] + reaction_data
     writer.writerow(post_data)
   
   csv_file.close()
