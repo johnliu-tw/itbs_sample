@@ -5,11 +5,15 @@ import traceback
 from pprint import pprint
 from snownlp import SnowNLP
 
+# 設定 CSV 內，貼文、回應與回覆的欄位索引
 post_index = 1
 comment_index = 10
 reply_index = 18
+
+# 載入 jieba 套件的文字解析基本資料檔
 jieba.load_userdict('dict.txt.big')
 
+# 載入贅字資料
 def get_trash_text():
     return ['\n', '/', ' ', '🏻', 'https', 'http', 'www', 'com', '👇',
     '的', '了', '在', '是', '我', '有', '和', '就', 
@@ -37,23 +41,31 @@ def get_trash_text():
     '.', ',', '!', '?', '<', '>', '/', '\\', '|', '[', ']', '{', '}', '+', '=', '-', '_', '*', '&', '^', '%', '$', '#', '@', '~', '`', '(', ')', ':', ';', ' ']
 
 try:
+    # 開啟檔案並使用讀取模式
     file = open('2023-06-25_Gooaye_data.csv', 'r')
     reader = csv.reader(file)
+
+    # 跳過第一列，因為是標題
     next(reader)
+
+    # 設定 dictionary 來儲存斷詞、情緒與每篇文章的情緒分數
     text_dict = {}
     sentiments_dict = {}
     sentiments_for_post = {}
     trash_text = get_trash_text()
     for row in reader:
+        # 如果讀到的列是貼文資料，則顯示相關 Tag，並設定 sentiments_for_post 的初始資料結構
         if row[post_index] != '':
             tags = jieba.analyse.extract_tags(row[post_index], topK=5)
             post_text = row[post_index]
             sentiments_for_post[post_text] = []
             print(tags)
 
+        # 如果讀到的列是貼文資料，因為後面回應與回覆部分是空白的，可以直接跳過
         if len(row) < 11:
             continue
 
+        # 如果讀到的列是回應資料，則分析解構回應內容，並儲存進 text_dict 中
         if row[comment_index] != '':
             seg_list = jieba.cut(row[comment_index]) 
             for seg in seg_list:
@@ -65,12 +77,16 @@ try:
                 else: 
                     text_dict[seg] = 1
             
+            # 分析回應的情緒分數，並儲存進 sentiments_dict 與 sentiments_for_post
             s = SnowNLP(row[comment_index])
             sentiments_dict[row[comment_index]] = s.sentiments
             sentiments_for_post[post_text].append(s.sentiments)
 
+        # 如果讀到的列是回應資料，因為後面回覆部分是空白的，可以直接跳過
         if len(row) < 19:
             continue
+
+        # 如果讀到的列是回覆資料，則分析解構回覆內容，並儲存進 text_dict 中
         if row[reply_index] != '':
             seg_list = jieba.cut(row[reply_index]) 
             for seg in seg_list:
@@ -82,16 +98,20 @@ try:
                 else: 
                     text_dict[seg] = 1
 
+            # 分析回覆的情緒分數，並儲存進 sentiments_dict 與 sentiments_for_post
             s = SnowNLP(row[reply_index])
             sentiments_dict[row[reply_index]] = s.sentiments
             sentiments_for_post[post_text].append(s.sentiments)
 
+    # 印出斷詞結果
     seg_data = sorted(text_dict.items(), key=lambda d:d[1], reverse=True)
     print(seg_data)
 
+    # 印出每個回應與回覆的情緒分數
     sentiments_data = sorted(sentiments_dict.items(), key=lambda d:d[1], reverse=True)
     pprint(sentiments_data)
 
+    # 印出每篇文章的平均情緒分數
     for post, sentiment in sentiments_for_post.items():
         sentiments_for_post[post] = sum(sentiment) / len(sentiment)
     sentiments_for_post_data = sorted(sentiments_for_post.items(), key=lambda d:d[1], reverse=True)
