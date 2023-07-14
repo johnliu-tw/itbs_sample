@@ -19,6 +19,31 @@ try:
             tags = jieba.analyse.extract_tags(row[post_index], topK=5)
             print(tags)
 
+        if len(row) < 11:
+            continue
+
+        if row[comment_index] != '':
+            seg_list = jieba.cut(row[comment_index]) 
+            for seg in seg_list:
+
+                if seg in text_dict:
+                    text_dict[seg] += 1
+                else: 
+                    text_dict[seg] = 1
+
+        if len(row) < 19:
+            continue
+        if row[reply_index] != '':
+            seg_list = jieba.cut(row[reply_index]) 
+            for seg in seg_list:
+                if seg in text_dict:
+                    text_dict[seg] += 1
+                else: 
+                    text_dict[seg] = 1
+
+    seg_data = sorted(text_dict.items(), key=lambda d:d[1], reverse=True)
+    print(seg_data)
+
     file.close()
 except Exception as e:
     file.close()
